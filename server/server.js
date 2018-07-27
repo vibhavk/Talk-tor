@@ -16,9 +16,19 @@ app.use(express.static(publicPath));
 io.on('connection',(socket)=>{
     console.log('New user connected! Hi!');
 
+    socket.emit('newMessage',{
+        from: 'server@backend',
+        text:'SNAFU',
+        createdAt:12345
+    }); //emitting custom event! with an object containing info we need to pass to the client
+
+    socket.on('createMessage',(message)=>{
+        console.log('Clientside sent a message!',message);
+    });    
     socket.on('disconnect',()=>{ //function to run when a socket was disconnected
         console.log('User disconnected from server');
     });
+
 }); //event listener registration, here we are listening for a new connection...socket represents the invidual socket connection
 
 server.listen(port,()=>{

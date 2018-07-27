@@ -7,14 +7,6 @@
 <body>
     <p>Welcome to Talk-tor!</p>
     <script src="/socket.io/socket.io.js"></script>
-    <script>
-        var socket = io(); //initiates a request by client to server to create a socket connection between and keep it alive.
-        socket.on('connect',()=>{
-            console.log('Connected to server');
-        }); //the function is similar to one at server-side just that here we have direct reference to the socket connection made.
-        socket.on('disconnect',()=>{
-            console.log('Disconnected from server');
-        });
-    </script>
+    <script src="./js/index.js"></script>
 </body>
 </html>

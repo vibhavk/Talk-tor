@@ -17,4 +17,26 @@ socket.on('disconnect',function(){
 
 socket.on('newMessage',function(message){
     console.log('New message!',message); //custom event-listener!
+    var li = jQuery('<li></li>');
+    li.text(`${message.from} : ${message.text}`);
+    jQuery('#messages').append(li)
+});
+
+// socket.emit('createMessage',{
+//     from: 'client',
+//     text:'dummy message'
+// },function (ackMessage) { // this function fires up when we receive acknowledgement
+//     console.log(`Got the acknowledgment! ${ackMessage}`);
+// });
+
+////jQuery Code below////
+
+jQuery('#message-form').on('submit',function(e){ //e is the event object passed to the function when submit happens
+    e.preventDefault();
+    socket.emit('createMessage',{
+        from:'User',
+        text:jQuery('[name=message]').val()
+    }, function(){
+
+    });
 });

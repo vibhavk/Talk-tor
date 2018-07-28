@@ -29,12 +29,13 @@ io.on('connection',(socket)=>{
     ));
 
     //emitting custom event! with an object containing info we need to pass to the client
-    socket.on('createMessage',(message)=>{
+    socket.on('createMessage',(message, callback)=>{
         console.log('Someone sent a message!',message);
         io.emit('newMessage',generateMessage(
             message.from,
             message.text,
         ));
+        callback('From server, with love <3');//this callback is fired up as an acknowledgement to the frontend
 
         // socket.broadcast.emit('newMessage',{ //emits to all but the socket itself.
         //     from:message.from,

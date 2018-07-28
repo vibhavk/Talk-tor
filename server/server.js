@@ -14,8 +14,20 @@ var io = socketIO(server); //we get back a websocket server
 app.use(express.static(publicPath));
 
 io.on('connection',(socket)=>{
-    console.log('New user connected! Hi!');
+    console.log('New user connected!');
      
+    socket.emit('newMessage',{
+        from: 'admin',
+        text:'Welcome to Talk-tor!',
+        createdAt:new Date().getTime()
+    });
+
+    socket.broadcast.emit('newMessage',{
+        from: 'admin',
+        text:'A new user joined us',
+        createdAt:new Date().getTime()
+    });
+
     //emitting custom event! with an object containing info we need to pass to the client
     socket.on('createMessage',(message)=>{
         console.log('Someone sent a message!',message);
@@ -24,6 +36,12 @@ io.on('connection',(socket)=>{
             text:message.text,
             createdAt:new Date().getTime()
         });
+
+        // socket.broadcast.emit('newMessage',{ //emits to all but the socket itself.
+        //     from:message.from,
+        //     text:message.text,
+        //     createdAt:new Date().getTime()
+        // });
     });    
     socket.on('disconnect',()=>{ //function to run when a socket was disconnected
         console.log('User disconnected from server');

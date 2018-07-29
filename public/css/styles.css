@@ -122,8 +122,9 @@
   }
   
   .chat__messages {
+    font-family:'Open Sans', sans-serif;
     font-style: oblique;
-    font:bolder;  
+    font: xx-large;  
     flex-grow: 1;
     overflow-y: scroll;
     -webkit-overflow-scrolling: touch;

@@ -22,6 +22,15 @@ socket.on('newMessage',function(message){
     jQuery('#messages').append(li)
 });
 
+socket.on('newLocationMessage',function(message){
+    var li = jQuery('<li></li>');
+    var a = jQuery('<a target="_blank">My current location<a/>') //_blank opens the link in new tab, so we dont get kicked out of the room
+    li.text(`${message.from}:`);
+    a.attr('href',message.url);
+    li.append(a);
+    jQuery('#messages').append(li)
+});
+
 // socket.emit('createMessage',{
 //     from: 'client',
 //     text:'dummy message'
@@ -38,5 +47,22 @@ jQuery('#message-form').on('submit',function(e){ //e is the event object passed 
         text:jQuery('[name=message]').val()
     }, function(){
 
+    });
+});
+
+//finding and doing stuff to location button
+
+var locationButton = jQuery('#send-location');
+locationButton.on('click',function(){
+    if(!navigator.geolocation){
+        return alert('Geolocation not supported by your browser'); //alert() is default available for pop-ups
+    } //geolocation API is usually present in all modern browsers, this is to check just in case...
+    navigator.geolocation.getCurrentPosition(function(position){ // gCP function takes in 2 funcs, 1st one called on success, 2nd on failure
+        socket.emit('createLocationMessage',{
+            latitude:position.coords.latitude,
+            longitude:position.coords.longitude
+        });
+    },function(){
+        alert('Unable to fetch location');
     });
 });

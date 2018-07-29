@@ -40,13 +40,15 @@ socket.on('newLocationMessage',function(message){
 
 ////jQuery Code below////
 
+var messageTextBox = jQuery('[name=message]');
+
 jQuery('#message-form').on('submit',function(e){ //e is the event object passed to the function when submit happens
     e.preventDefault();
     socket.emit('createMessage',{
         from:'User',
-        text:jQuery('[name=message]').val()
+        text:messageTextBox.val()
     }, function(){
-
+        messageTextBox.val(''); //reset the form contents once user clicks on it
     });
 });
 
@@ -57,12 +59,16 @@ locationButton.on('click',function(){
     if(!navigator.geolocation){
         return alert('Geolocation not supported by your browser'); //alert() is default available for pop-ups
     } //geolocation API is usually present in all modern browsers, this is to check just in case...
+
+    locationButton.attr('disabled','disabled').text('Sending location...'); //disabling button for the while when request is being processed
     navigator.geolocation.getCurrentPosition(function(position){ // gCP function takes in 2 funcs, 1st one called on success, 2nd on failure
+        locationButton.removeAttr('disabled').text('Send location'); //re-enabling after succes!
         socket.emit('createLocationMessage',{
             latitude:position.coords.latitude,
             longitude:position.coords.longitude
         });
     },function(){
+        locationButton.removeAttr('disabled').text('Send location');
         alert('Unable to fetch location');
     });
 });

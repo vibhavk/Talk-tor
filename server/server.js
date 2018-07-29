@@ -35,7 +35,7 @@ io.on('connection',(socket)=>{
             message.from,
             message.text,
         ));
-        callback('From server, with love <3');//this callback is fired up as an acknowledgement to the frontend
+        callback();//this callback is fired up as an acknowledgement to the frontend
 
         // socket.broadcast.emit('newMessage',{ //emits to all but the socket itself.
         //     from:message.from,

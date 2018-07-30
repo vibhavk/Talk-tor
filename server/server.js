@@ -12,6 +12,7 @@ var server = http.createServer(app);
 var io = socketIO(server); //we get back a websocket server
 
 var {generateMessage,generateLocationMessage} = require('./utils/message');
+var {isRealString} = require('./utils/validation');
 
 app.use(express.static(publicPath));
 
@@ -27,6 +28,13 @@ io.on('connection',(socket)=>{
         'admin',
         'A new user joined us'
     ));
+
+    socket.on('join',(params, callback)=>{
+        if( !isRealString(params.name) || !isRealString(params.room)){
+            callback('Room name and User name are required')
+        }
+        callback();
+    });
 
     //emitting custom event! with an object containing info we need to pass to the client
     socket.on('createMessage',(message, callback)=>{

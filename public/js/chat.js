@@ -2,7 +2,16 @@
 
 var socket = io(); //initiates a request by client to server to create a socket connection between and keep it alive.
 socket.on('connect',function(){ //we can use arrowfuncs too, simple ones used for sake of compatibility with IE, FIREFOX, etc.
-    console.log('Connected to server');
+    var params = jQuery.deparam(window.location.search);
+    socket.emit('join',params, function(err){
+        if(err){
+            alert(err);
+            window.location.href='/';
+        } else{
+
+        }
+
+    });
 
 //     socket.emit('createMessage',{ //this emitter was placed inside on.connect listener is because we want to send object to server after being connected 
 //         to: 'server@backend',

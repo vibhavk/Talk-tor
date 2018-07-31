@@ -1,109 +1,102 @@
-// contains JS code of index.html
+var socket = io();
 
-var socket = io(); //initiates a request by client to server to create a socket connection between and keep it alive.
-socket.on('connect',function(){ //we can use arrowfuncs too, simple ones used for sake of compatibility with IE, FIREFOX, etc.
-    var params = jQuery.deparam(window.location.search);
-    socket.emit('join',params, function(err){
-        if(err){
-            alert(err);
-            window.location.href='/';
-        } else{
+function scrollToBottom () {
+  // Selectors
+  var messages = jQuery('#messages');
+  var newMessage = messages.children('li:last-child')
+  // Heights
+  var clientHeight = messages.prop('clientHeight');
+  var scrollTop = messages.prop('scrollTop');
+  var scrollHeight = messages.prop('scrollHeight');
+  var newMessageHeight = newMessage.innerHeight();
+  var lastMessageHeight = newMessage.prev().innerHeight();
 
-        }
+  if (clientHeight + scrollTop + newMessageHeight + lastMessageHeight >= scrollHeight) {
+    messages.scrollTop(scrollHeight);
+  }
+}
 
-    });
+socket.on('connect', function () {
+  var params = jQuery.deparam(window.location.search);
 
-//     socket.emit('createMessage',{ //this emitter was placed inside on.connect listener is because we want to send object to server after being connected 
-//         to: 'server@backend',
-//         text:'I know right!',
-//         createAt:12346
-//     });
-}); //the function is similar to one at server-side just that here we have direct reference to the socket connection made.
-
-function scrollToBottom(){
-    //selectors
-    var messages = jQuery('#messages');
-    var lastMessage = messages.children('li:last-child');
-    //heights
-    var clientHeight = messages.prop('clientHeight');
-    var scrollTop = messages.prop('scrollTop');
-    var scrollHeight = messages.prop('scrollHeight');
-    var lastMessageHeight = lastMessage.innerHeight();
-    var secondLastMessageHeight = lastMessage.prev().innerHeight();
-
-    if(clientHeight + scrollTop+ lastMessageHeight + secondLastMessageHeight >= scrollHeight){
-        messages.scrollTop(scrollHeight);
+  socket.emit('join', params, function (err) {
+    if (err) {
+      alert(err);
+      window.location.href = '/';
+    } else {
+      console.log('No error');
     }
-};
-
-socket.on('disconnect',function(){
-    console.log('Disconnected from server');
+  });
 });
 
-socket.on('newMessage',function(message){
-    console.log('New message!',message); //custom event-listener!
-    var formattedTime = moment(message.createdAt).format('h:mm A');
-    var template = jQuery('#message-template').html();
-    var html = Mustache.render(template,{
-        text:message.text,
-        from:message.from,
-        createdAt:formattedTime
-    });
-    jQuery('#messages').append(html);
-    scrollToBottom();
+socket.on('disconnect', function () {
+  console.log('Disconnected from server');
 });
 
-socket.on('newLocationMessage',function(message){
-    console.log('New location message!',message); //custom event-listener!
-    var formattedTime = moment(message.createdAt).format('h:mm A');
-    var template = jQuery('#location-message-template').html();
-    var html = Mustache.render(template,{
-        url:message.url,
-        from:message.from,
-        createdAt:formattedTime
-    });
-    jQuery('#messages').append(html);
-    scrollToBottom();
+socket.on('updateUserList', function (users) {
+  var ol = jQuery('<ol></ol>');
+
+  users.forEach(function (user) {
+    ol.append(jQuery('<li></li>').text(user));
+  });
+
+  jQuery('#users').html(ol);
 });
 
-// socket.emit('createMessage',{
-//     from: 'client',
-//     text:'dummy message'
-// },function (ackMessage) { // this function fires up when we receive acknowledgement
-//     console.log(`Got the acknowledgment! ${ackMessage}`);
-// });
+socket.on('newMessage', function (message) {
+  var formattedTime = moment(message.createdAt).format('h:mm a');
+  var template = jQuery('#message-template').html();
+  var html = Mustache.render(template, {
+    text: message.text,
+    from: message.from,
+    createdAt: formattedTime
+  });
 
-////jQuery Code below////
-
-var messageTextBox = jQuery('[name=message]');
-
-jQuery('#message-form').on('submit',function(e){ //e is the event object passed to the function when submit happens
-    e.preventDefault();
-    socket.emit('createMessage',{
-        from:'User',
-        text:messageTextBox.val()
-    }, function(){
-        messageTextBox.val(''); //reset the form contents once user clicks on it
-    });
+  jQuery('#messages').append(html);
+  scrollToBottom();
 });
 
-//finding and doing stuff to location button
+socket.on('newLocationMessage', function (message) {
+  var formattedTime = moment(message.createdAt).format('h:mm a');
+  var template = jQuery('#location-message-template').html();
+  var html = Mustache.render(template, {
+    from: message.from,
+    url: message.url,
+    createdAt: formattedTime
+  });
+
+  jQuery('#messages').append(html);
+  scrollToBottom();
+});
+
+jQuery('#message-form').on('submit', function (e) {
+  e.preventDefault();
+
+  var messageTextbox = jQuery('[name=message]');
+
+  socket.emit('createMessage', {
+    text: messageTextbox.val()
+  }, function () {
+    messageTextbox.val('')
+  });
+});
 
 var locationButton = jQuery('#send-location');
-locationButton.on('click',function(){
-    if(!navigator.geolocation){
-        return alert('Geolocation not supported by your browser'); //alert() is default available for pop-ups
-    } //geolocation API is usually present in all modern browsers, this is to check just in case...
+locationButton.on('click', function () {
+  if (!navigator.geolocation) {
+    return alert('Geolocation not supported by your browser.');
+  }
 
-    locationButton.attr('disabled','disabled').text('Sending location...'); //disabling button for the while when request is being processed
-    navigator.geolocation.getCurrentPosition(function(position){ // gCP function takes in 2 funcs, 1st one called on success, 2nd on failure
-        locationButton.removeAttr('disabled').text('Send location'); //re-enabling after succes!
-        socket.emit('createLocationMessage',{
-            latitude:position.coords.latitude,
-            longitude:position.coords.longitude
-        });
-    },function(){
-        locationButton.removeAttr('disabled').text('Send location');
-        alert('Unable to fetch location');
+  locationButton.attr('disabled', 'disabled').text('Sending location...');
+
+  navigator.geolocation.getCurrentPosition(function (position) {
+    locationButton.removeAttr('disabled').text('Send location');
+    socket.emit('createLocationMessage', {
+      latitude: position.coords.latitude,
+      longitude: position.coords.longitude
     });
+  }, function () {
+    locationButton.removeAttr('disabled').text('Send location');
+    alert('Unable to fetch location.');
+  });
 });
